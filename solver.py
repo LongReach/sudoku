@@ -1,0 +1,91 @@
+from puzzle_grid import PuzzleGrid
+from typing import List, Any, Set, Tuple, Optional
+
+sample_puzzle = [
+    [8, 5, 0, 0, 0, 1, 0, 0, 6],
+    [0, 0, 7, 0, 6, 4, 1, 0, 0],
+    [0, 0, 4, 0, 7, 0, 5, 9, 0],
+    [2, 0, 0, 0, 5, 6, 0, 0, 4],
+    [6, 0, 0, 1, 0, 9, 0, 7, 0],
+    [7, 0, 1, 0, 4, 0, 0, 0, 9],
+    [0, 1, 0, 9, 0, 0, 4, 6, 0],
+    [0, 9, 6, 0, 0, 8, 0, 0, 7],
+    [0, 7, 0, 6, 0, 0, 0, 0, 1]
+]
+
+class BruteForceSolver:
+    """
+    A class that solves a Sudoku puzzle by brute force. See README for more info.
+    """
+
+    def __init__(self, grid: PuzzleGrid):
+        self.grid: PuzzleGrid = grid
+        self.options: List[List[List[int]]] = []
+
+        for y in range(PuzzleGrid.NUM_ROWS):
+            options_row: List[List[int]] = []
+            for x in range(PuzzleGrid.NUM_COLUMNS):
+                empty_cell, options = self.grid.get_possible_values(x, y)
+                options_row.append(list(options))
+            self.options.append(options_row)
+
+        self.solved_puzzle: Optional[PuzzleGrid] = None
+
+    def set_value(self, x: int, y: int, val: int):
+        """
+        Equivalent to penciling in a value while solving puzzle. Or making cell empty again.
+        :param x: --
+        :param y: --
+        :param val: 0 for blank cell, 1 - 9 otherwise
+        """
+        options_list = self.options[y][x]
+        options_list.clear()
+        self.grid.set_value(x, y, val)
+        if val == 0:
+            empty_cell, options = self.grid.get_possible_values(x, y)
+            options_list.extend(options)
+
+    def solve(self) -> Tuple[int, Optional[PuzzleGrid]]:
+        success_count = self._solve_impl(0)
+        return success_count, self.solved_puzzle
+
+    def _solve_impl(self, index: int) -> int:
+        if index >= PuzzleGrid.NUM_ROWS * PuzzleGrid.NUM_COLUMNS:
+            if self.solved_puzzle is None:
+                self.solved_puzzle = PuzzleGrid()
+            self.solved_puzzle.copy(self.grid)
+            return 1
+        x, y = self._index_to_coordinate(index)
+        empty_cell, options = self.grid.get_possible_values(x, y)
+        if empty_cell and len(options) == 0:
+            # There are no possible options that would work, return failure
+            return 0
+        if not empty_cell:
+            # Advance to next cell
+            return self._solve_impl(index+1)
+        success_count = 0
+        for val in options:
+            # Let's try this value, then advance to next cell
+            self.set_value(x, y, val)
+            recursive_success_count = self._solve_impl(index+1)
+            success_count += recursive_success_count
+            self.set_value(x, y, 0)
+        return success_count
+
+    @staticmethod
+    def _index_to_coordinate(index: int) -> Tuple[int, int]:
+        row = int(index / PuzzleGrid.NUM_COLUMNS)
+        column = index % PuzzleGrid.NUM_COLUMNS
+        return column, row
+
+def solve_sample_puzzle():
+    grid = PuzzleGrid()
+    grid.populate_from_list(sample_puzzle)
+    grid.print_cells()
+
+    solver = BruteForceSolver(grid)
+    success_count, solved_grid = solver.solve()
+    print(f"\nSuccess count is: {success_count}")
+    if success_count > 0:
+        print("Solved puzzle:")
+        solved_grid.print_cells()
