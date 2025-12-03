@@ -8,6 +8,8 @@ This program generates Sudoku puzzles and then solves them.
 
 ### Rules of Sudoku
 
+![](./sudoku-grid.png)
+
 Sudoku, in its basic form, is played on a 9x9 grid. The grid is subdivided into 9 boxes, each 3x3. The puzzle is presented with some number of cells containing values between 1 and 9, and the rest left blank. The player's goal is to fill in the blank cells.
 
 Rules
@@ -17,13 +19,13 @@ Rules
 
 ... no value is repeated twice. The digits between 1 and 9 are all present. The fewer filled-in cells the puzzle contains, the harder it typically is. The player uses a process of elimination to try to solve the puzzle, applying the rules above.
 
-### Algorithm
+### Algorithms
 
 #### Solution One: Brute Force
 
 The algorithm traverses the grid from top-left to bottom-right, applying a depth-first search approach. At each blank cell, the algorithm chooses a value, from those that are legal, then proceeds to the next cell. If it's impossible to find a legal value for that particular cell, the algorithm backtracks to the previous cell and tries a different value.
 
-#### Generation
+#### Puzzle Generation
 
 The generation algorithm attempts to populate each row by taking the set of integers between 1 and 9, shuffling them, and placing them one by one into the row. If a row can't be completed, due to running out of values that legally work, the algorithm clears the row and tries again. If, after some number of tries, it still can't complete the row, it starts over from scratch. In practice, this works pretty well.
 
@@ -83,3 +85,10 @@ A puzzle that's ready to be solved might look like this:
 +-------+-------+-------+
 ```
 `A fairly easy puzzle`
+
+## Usage
+
+Run like:
+```commandline
+
+```

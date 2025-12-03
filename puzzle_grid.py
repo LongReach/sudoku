@@ -40,7 +40,7 @@ class PuzzleGrid:
     # We try many different configurations of blanks on a grid of numbers. If we get through some
     # number of failed configurations without success, we might as well just start over with a
     # new grid of numbers.
-    MAX_FAILED_SPACE_CONFIGURATIONS = 500
+    MAX_FAILED_SPACE_CONFIGURATIONS = 200
 
     possible_values = [i + 1 for i in range(9)]
 
@@ -63,6 +63,7 @@ class PuzzleGrid:
         self.max_spaces_per_box = 1000
         self.min_spaces_per_box = 0
         self.space_failure_count = 0
+        self.forgiving_space_distribution = False
 
         self.reset()
 
@@ -323,7 +324,7 @@ class PuzzleGrid:
             print("Failure!")
             raise GridException("Could not generate puzzle")
 
-    def add_spaces(self, solver_callback: Callable[[], bool], required_spaces: int = 45) -> bool:
+    def add_spaces(self, solver_callback: Callable[[], bool], required_spaces: int = 45, forgiving_distribution: bool = False) -> bool:
         """
         This function is to be called after the grid has been populated with numbers. It adds the blanks
         that are necessary to make the puzzle interesting to the player. It attempts to keep the spaces
@@ -334,6 +335,7 @@ class PuzzleGrid:
             that there must be one solution and one solution only. This callback performs that task, returning
             True if the requirement is met.
         :param required_spaces: the number of spaces that must be added to the grid
+        :param forgiving_distribution: if True, algorithm will be more forgiving about space distribution
         :return: True if success
         """
         self.required_spaces = required_spaces
@@ -344,6 +346,7 @@ class PuzzleGrid:
         self.min_spaces_per_box = avg_spaces_per_box - 1
         self.max_spaces_per_box = avg_spaces_per_box + 1
         self.space_failure_count = 0
+        self.forgiving_space_distribution = forgiving_distribution
 
         # Will contain shuffled list of all possible cell coordinates
         space_markers: List[SpaceMarker] = []
@@ -356,16 +359,25 @@ class PuzzleGrid:
 
         index = 0
         space_count = 0
-        success = self._add_spaces_impl(space_markers, index, space_count)
+
+        try:
+            success = self._add_spaces_impl(space_markers, index, space_count)
+        except GridException as ex:
+            # Restore grid to the way it was, minus any spaces
+            for marker in space_markers:
+                self.set_value(marker.x, marker.y, marker.old_val)
+            raise ex
+
         if success and self.grid_with_spaces:
             self.copy(self.grid_with_spaces)
         return success
 
-    def generate_puzzle(self, solver_callback: Callable[[], bool], required_spaces: int = 45) -> bool:
+    def generate_puzzle(self, solver_callback: Callable[[], bool], required_spaces: int = 45, forgiving_distribution: bool = False) -> bool:
         """
         Generates a complete puzzle, calling both populate_cells() and add_spaces() in one step.
         :param solver_callback: see add_spaces()
         :param required_spaces: see add_spaces()
+        :param forgiving_distribution: see add_spaces()
         :return: True if puzzle generated successfully
         """
         num_tries = 30
@@ -375,10 +387,10 @@ class PuzzleGrid:
                 self.populate_cells()
             except GridException as ex:
                 print("Could not populate cells")
-                break
+                return False
 
             try:
-                self.add_spaces(solver_callback, required_spaces)
+                self.add_spaces(solver_callback, required_spaces, forgiving_distribution)
             except GridException as ex:
                 print(f"Failed to add spaces successfully on try number {_try + 1}")
             else:
@@ -514,4 +526,4 @@ class PuzzleGrid:
                 # We must have an acceptable number of spaces in this box to proceed
                 if spaces_in_box > self.max_spaces_per_box or spaces_in_box < self.min_spaces_per_box:
                     return False
-        return boxes_with_avg_num_spaces >= 5
+        return True if self.forgiving_space_distribution else boxes_with_avg_num_spaces >= 5
