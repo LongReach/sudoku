@@ -108,6 +108,7 @@ For help:
 python sudoku.py --help
 ```
 
+Run like:
 ```commandline
 python sudoku.py --clues 36 --solve
 ```
