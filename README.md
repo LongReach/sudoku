@@ -13,6 +13,9 @@ Sudoku puzzle generator and solver
       - [Solution One: Brute Force](#solution-one-brute-force)
       - [Puzzle Generation](#puzzle-generation)
 * [Usage](#usage)
+   + [Basic](#basic)
+   + [Handles](#handles)
+* [Improvement Ideas](#improvement-ideas)
 
 <!-- TOC end -->
 
@@ -103,6 +106,8 @@ A puzzle that's ready to be solved might look like this:
 
 ## Usage
 
+### Basic
+
 For help:
 ```commandline
 python sudoku.py --help
@@ -116,3 +121,64 @@ python sudoku.py --clues 36 --solve
 The example above will create a puzzle with 36 clues (or 45 spaces), then solve it.
 
 The fewer clues a puzzle has, the harder it will be to solve and the longer it will take to generate. If generation seems to be taking too long, try the `--forgiving` flag.
+
+### Handles
+
+Each randomly-generated puzzle includes a handle, which looks something like: `BydW+n79pAYagBQAaUkndzXyYSevzWDlpb8BgF6w6dFcY`
+
+This allows puzzles to be recreated, like so:
+
+```commandline
+python sudoku.py --handle BydW+n79pAYagBQAaUkndzXyYSevzWDlpb8BgF6w6dFcY --solve
+```
+
+The resulting puzzle is:
+```
+O=======================O=======================O=======================O
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+‖   2   |   5   |       ‖       |   7   |   4   ‖   8   |       |       ‖
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+‖-------+-------+-------‖-------+-------+-------‖-------+-------+-------‖
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+‖   9   |       |       ‖       |       |       ‖   2   |       |       ‖
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+‖-------+-------+-------‖-------+-------+-------‖-------+-------+-------‖
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+‖       |       |       ‖       |   8   |       ‖       |   5   |       ‖
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+O=======================O=======================O=======================O
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+‖   5   |       |   3   ‖       |   6   |       ‖       |   2   |       ‖
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+‖-------+-------+-------‖-------+-------+-------‖-------+-------+-------‖
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+‖       |       |       ‖   5   |       |   7   ‖       |       |       ‖
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+‖-------+-------+-------‖-------+-------+-------‖-------+-------+-------‖
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+‖   4   |       |       ‖       |       |       ‖       |   6   |   3   ‖
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+O=======================O=======================O=======================O
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+‖   7   |   3   |       ‖       |   2   |       ‖   6   |       |   9   ‖
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+‖-------+-------+-------‖-------+-------+-------‖-------+-------+-------‖
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+‖   6   |   4   |       ‖       |   9   |   3   ‖   7   |       |       ‖
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+‖-------+-------+-------‖-------+-------+-------‖-------+-------+-------‖
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+‖       |       |   9   ‖       |   4   |   6   ‖   3   |       |       ‖
+‖       |       |       ‖       |       |       ‖       |       |       ‖
+O=======================O=======================O=======================‖
+```
+_(Also found in `sample_puzzle.txt`)_
+
+## Improvement Ideas
+
+![](./Improvements.png)
+
+* Create "human-like" solver as an alternative to brute-force solver. This can gauge how hard a given puzzle is.
+* Can ChatGPT or some other AI chatbot solve one of these puzzles?
+* Add unit tests
+* Add mode for human play

@@ -115,6 +115,53 @@ class PuzzleGrid:
                 if cell_val > 0:
                     self.set_value(x, y, cell_val)
 
+    def populate_from_handle(self, handle: str):
+        """
+        From a handle (a hash), populate a puzzle. See _generate_handle() for details about the formula.
+        This feature allows users to recreate puzzles.
+        """
+        self.reset()
+
+        # Each five characters represent a row, starting with bottom and moving up
+        row_handles = []
+        for y in range(self.NUM_ROWS):
+            idx = 5 * y
+            row_handles.append(handle[idx:idx+5])
+        row_handles.reverse()
+
+        decimal_handles = []
+        for row_handle in row_handles:
+            parts: List[int] = []
+            # Characters go from most significant (left in str, right in puzzle) to least (left in str, right in puzzle)
+            for c in row_handle:
+                if ord('A') <= ord(c) <= ord('Z'):
+                    parts.append(ord(c) - ord('A'))
+                elif ord('a') <= ord(c) <= ord('z'):
+                    parts.append(ord(c) - ord('a') + 26)
+                elif ord('0') <= ord(c) <= ord('9'):
+                    parts.append(ord(c) - ord('0') + 52)
+                elif ord(c) == ord('+'):
+                    parts.append(62)
+                elif ord(c) == ord('/'):
+                    parts.append(63)
+                else:
+                    raise GridException(f"Unknown character '{c}'")
+
+            # Flip around so that least significant values come first
+            parts.reverse()
+
+            decimal_handle: int = 0
+            for index, part in enumerate(parts):
+                decimal_handle += int(part) * (64 ** index)
+            decimal_handles.append(decimal_handle)
+
+        for y in range(self.NUM_ROWS):
+            decimal_handle = decimal_handles[y]
+            for x in range(self.NUM_COLUMNS):
+                val = decimal_handle % 10
+                decimal_handle = int(decimal_handle / 10)
+                self.set_value(x, y, val)
+
     def print_cells(self):
         """
         Prints out an attractive representation of the Sudoku puzzle. See README for examples.
@@ -208,6 +255,8 @@ class PuzzleGrid:
             for row in row_strs:
                 if len(row) > 0:
                     print(row)
+
+        print(f"Handle: {self._generate_handle()}")
 
     def get_value(self, x: int, y: int) -> int:
         """Gets the value at a particular cell, returning 0 if a blank cell"""
@@ -527,3 +576,53 @@ class PuzzleGrid:
                 if spaces_in_box > self.max_spaces_per_box or spaces_in_box < self.min_spaces_per_box:
                     return False
         return True if self.forgiving_space_distribution else boxes_with_avg_num_spaces >= 5
+
+    def _generate_handle(self) -> str:
+        """
+        Generate a hash for a specific puzzle, which can be used to recreate it.
+
+        Formula: for each row, generate a base10 representation, then turn it into a base64 one.
+        The least significant digits will correlate with cells on the left.
+
+        Output will look like: C+2lwkPXOL4B1q2FEP9AAABS0p610QR4aNiEvMUkACUsN
+
+        First five characters represent bottom row, next five second-to-bottom, etc.
+        """
+        base10_rows: List[int] = []
+        for y in range(self.NUM_ROWS):
+            decimal_handle = 0
+            for x in range(self.NUM_COLUMNS):
+                decimal_handle += self.cells[y][x] * (10 ** x)
+            base10_rows.append(decimal_handle)
+
+        def _part_convertor(_part: int) -> str:
+            if _part < 26:
+                return chr(ord('A') + _part)
+            elif _part < 52:
+                return chr(ord('a') + _part - 26)
+            elif _part < 62:
+                return chr(ord('0') + _part - 52)
+            elif _part == 62:
+                return '+'
+            elif _part == 63:
+                return '/'
+            else:
+                raise GridException(f"Unable to convert part {_part} to base64")
+
+        alphabet_handles = []
+        for base10_row in base10_rows:
+            decimal_handle = base10_row
+            alphabet_handle_parts = []
+            while decimal_handle > 0:
+                division_result = int(decimal_handle / 64)
+                remainder = decimal_handle % 64
+                decimal_handle = division_result
+                alphabet_handle_parts.insert(0, remainder)
+            alphabet_handle_parts = [_part_convertor(part) for part in alphabet_handle_parts]
+            alphabet_handle = "".join(alphabet_handle_parts)
+            # Pad with leading zeros ('A" in base64)
+            alphabet_handle = alphabet_handle.rjust(5, 'A')
+            alphabet_handles.append(alphabet_handle)
+
+        alphabet_handles.reverse()
+        return "".join(alphabet_handles)

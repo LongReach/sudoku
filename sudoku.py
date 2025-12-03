@@ -1,6 +1,7 @@
 from puzzle_grid import PuzzleGrid
 from solver import solve_sample_puzzle, BruteForceSolver
 
+from typing import Optional
 import argparse
 
 
@@ -12,7 +13,7 @@ def run_test(which_test: int):
         print(f"Unknown test {which_test}")
 
 
-def main(num_spaces: int, forgiving_distribution: bool, solve: bool):
+def main(num_spaces: int, forgiving_distribution: bool, solve: bool, handle: Optional[str] = None):
     print("Generating puzzle:")
     grid = PuzzleGrid()
 
@@ -22,14 +23,22 @@ def main(num_spaces: int, forgiving_distribution: bool, solve: bool):
         solution_count, solution_grip = solver.solve()
         return solution_count == 1
 
-    print("\nAdding spaces...")
-    success = grid.generate_puzzle(solver_func, num_spaces, forgiving_distribution=forgiving_distribution)
-    if success:
-        print(f"\nSuccessfully added {num_spaces} spaces!")
-        grid.print_cells()
+    if handle:
+        print("Populating puzzle from handle")
+        try:
+            grid.populate_from_handle(handle)
+        except Exception as e:
+            print("Failed to populate puzzle")
+            return
     else:
-        print("\nFailed to add spaces.")
-        return
+        print("\nAdding spaces...")
+        success = grid.generate_puzzle(solver_func, num_spaces, forgiving_distribution=forgiving_distribution)
+        if success:
+            print(f"\nSuccessfully added {num_spaces} spaces!")
+            grid.print_cells()
+        else:
+            print("\nFailed to add spaces.")
+            return
 
     solver = BruteForceSolver(grid)
     if solve:
@@ -54,13 +63,17 @@ if __name__ == '__main__':
                         type=int, required=False, default=0)
     parser.add_argument("--forgiving", help="If given, use more forgiving space distribution. Use when it's taking too long to generate puzzles.", action="store_true")
     parser.add_argument("--solve", help="If given, solve puzzle", action="store_true")
+    parser.add_argument("--handle", help="Handle to make puzzle from",
+                        type=str, required=False, default=None)
     args = parser.parse_args()
 
     if args.test > -1:
         run_test(args.test)
+    elif args.handle:
+        main(0, True, args.solve, args.handle)
     elif args.spaces > 0:
-        main(args.spaces, args.forgiving, args.solve)
+        main(args.spaces, args.forgiving, args.solve, args.handle)
     elif args.clues > 0:
-        main(PuzzleGrid.NUM_ROWS * PuzzleGrid.NUM_COLUMNS - args.clues, args.forgiving, args.solve)
+        main(PuzzleGrid.NUM_ROWS * PuzzleGrid.NUM_COLUMNS - args.clues, args.forgiving, args.solve, args.handle)
     else:
         print("No valid argument given. Use --help argument for more info.")
