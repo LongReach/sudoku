@@ -7,8 +7,6 @@ def main():
 
     print("\nGenerating puzzle:\n")
     grid = PuzzleGrid()
-    grid.populate_cells()
-    grid.print_cells()
 
     solver = BruteForceSolver(grid)
 
@@ -17,8 +15,8 @@ def main():
         return solution_count == 1
 
     print("\nAdding spaces")
-    num_spaces = 46
-    success = grid.add_spaces(solver_func, num_spaces)
+    num_spaces = 45
+    success = grid.generate_puzzle(solver_func, num_spaces)
     if success:
         print(f"\nSuccessfully added {num_spaces} spaces!")
         grid.print_cells()

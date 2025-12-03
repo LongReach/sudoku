@@ -46,11 +46,25 @@ class BruteForceSolver:
             options_list.extend(options)
 
     def solve(self) -> Tuple[int, Optional[PuzzleGrid]]:
+        """
+        Tries to solve the puzzle.
+        :return: (number of possible solutions, a PuzzleGrid containing a solution that works (or None))
+        """
         success_count = self._solve_impl(0)
         return success_count, self.solved_puzzle
 
     def _solve_impl(self, index: int) -> int:
+        """
+        Recursive solve function. Think of the grid being converted to a one-dimensional list
+        of cells (from top-left to bottom-right, typewriter style). The index marks how far
+        we've recursed into that list.
+
+        :param index: --
+        :return: number of solutions recursively found, or 0
+        """
         if index >= PuzzleGrid.NUM_ROWS * PuzzleGrid.NUM_COLUMNS:
+            # We've recursed all the way to the end of the one-dimensional list, therefore a
+            # solution has been found.
             if self.solved_puzzle is None:
                 self.solved_puzzle = PuzzleGrid()
             self.solved_puzzle.copy(self.grid)
@@ -61,11 +75,11 @@ class BruteForceSolver:
             # There are no possible options that would work, return failure
             return 0
         if not empty_cell:
-            # Advance to next cell
+            # This is not a blank cell, recursively advance to next cell
             return self._solve_impl(index+1)
         success_count = 0
         for val in options:
-            # Let's try this value, then advance to next cell
+            # Let's try this value, then recursively advance to next cell
             self.set_value(x, y, val)
             recursive_success_count = self._solve_impl(index+1)
             success_count += recursive_success_count
@@ -74,11 +88,16 @@ class BruteForceSolver:
 
     @staticmethod
     def _index_to_coordinate(index: int) -> Tuple[int, int]:
+        """
+        If the grid is "unrolled" into a one-dimensional list, this function takes an index into
+        that list and returns the corresponding two-dimensional coordinates.
+        """
         row = int(index / PuzzleGrid.NUM_COLUMNS)
         column = index % PuzzleGrid.NUM_COLUMNS
         return column, row
 
 def solve_sample_puzzle():
+    """Solves the sample puzzle found at the top of this file."""
     grid = PuzzleGrid()
     grid.populate_from_list(sample_puzzle)
     grid.print_cells()
