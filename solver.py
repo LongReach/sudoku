@@ -1,8 +1,34 @@
-from puzzle_grid import PuzzleGrid
+from puzzle_grid import PuzzleGrid, GridException
 from typing import List, Any, Set, Tuple, Optional
 
 sample_puzzle = [
     [8, 5, 0, 0, 0, 1, 0, 0, 6],
+    [0, 0, 7, 0, 6, 4, 1, 0, 0],
+    [0, 0, 4, 0, 7, 0, 5, 9, 0],
+    [2, 0, 0, 0, 5, 6, 0, 0, 4],
+    [6, 0, 0, 1, 0, 9, 0, 7, 0],
+    [7, 0, 1, 0, 4, 0, 0, 0, 9],
+    [0, 1, 0, 9, 0, 0, 4, 6, 0],
+    [0, 9, 6, 0, 0, 8, 0, 0, 7],
+    [0, 7, 0, 6, 0, 0, 0, 0, 1]
+]
+
+# Contains overly-long row
+bad_puzzle_1 = [
+    [8, 5, 0, 0, 0, 1, 0, 0, 6],
+    [0, 0, 7, 0, 6, 4, 1, 0, 0],
+    [0, 0, 4, 0, 7, 0, 5, 9, 0],
+    [2, 0, 0, 0, 5, 6, 0, 0, 4, 3],
+    [6, 0, 0, 1, 0, 9, 0, 7, 0],
+    [7, 0, 1, 0, 4, 0, 0, 0, 9],
+    [0, 1, 0, 9, 0, 0, 4, 6, 0],
+    [0, 9, 6, 0, 0, 8, 0, 0, 7],
+    [0, 7, 0, 6, 0, 0, 0, 0, 1]
+]
+
+# Contains unacceptable value
+bad_puzzle_2 = [
+    [111, 5, 0, 0, 0, 1, 0, 0, 6],
     [0, 0, 7, 0, 6, 4, 1, 0, 0],
     [0, 0, 4, 0, 7, 0, 5, 9, 0],
     [2, 0, 0, 0, 5, 6, 0, 0, 4],
@@ -20,6 +46,8 @@ class BruteForceSolver:
 
     def __init__(self, grid: PuzzleGrid):
         self.grid: PuzzleGrid = grid
+        # This will be a two-dimensional list. For each cell, there's a list containing values that
+        # would work in that call, if it's blank. If not blank, the list will be empty.
         self.options: List[List[List[int]]] = []
 
         for y in range(PuzzleGrid.NUM_ROWS):
@@ -96,15 +124,31 @@ class BruteForceSolver:
         column = index % PuzzleGrid.NUM_COLUMNS
         return column, row
 
-def solve_sample_puzzle():
-    """Solves the sample puzzle found at the top of this file."""
+def solve_sample_puzzle(which_sample: int):
+    """Solves one of the sample puzzles found at the top of this file."""
+    puzzle_to_use = sample_puzzle
+    exception_expected = False
+    if which_sample == 1:
+        puzzle_to_use = bad_puzzle_1
+        exception_expected = True
+    if which_sample == 2:
+        puzzle_to_use = bad_puzzle_2
+        exception_expected = True
+
     grid = PuzzleGrid()
-    grid.populate_from_list(sample_puzzle)
+    try:
+        grid.populate_from_list(puzzle_to_use)
+    except GridException as ex:
+        print(f"Got exception: {ex}")
+        if exception_expected:
+            print("(An expected exception)")
+        else:
+            print("NOT an expected exception!")
+        return
     grid.print_cells()
 
     solver = BruteForceSolver(grid)
     success_count, solved_grid = solver.solve()
-    print(f"\nSuccess count is: {success_count}")
     if success_count > 0:
-        print("Solved puzzle:")
+        print("\nSolved puzzle:")
         solved_grid.print_cells()

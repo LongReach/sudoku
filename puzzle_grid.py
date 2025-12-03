@@ -11,7 +11,7 @@ class GridException(Exception):
 
 
 class SpaceMarker:
-    """Used in adding cells to a puzzle"""
+    """Used in adding blank cells to a puzzle"""
 
     def __init__(self, x: int, y: int, old_val: int):
         self.x = x
@@ -78,8 +78,11 @@ class PuzzleGrid:
         """
         Copies another PuzzleGrid into this one.
         :param other: the PuzzleGrid to make a copy of
+        :raises GridException: if error encountered during copy
         """
-        # TODO: exception
+        if not isinstance(other, PuzzleGrid):
+            raise GridException("Can't copy object that's not a PuzzleGrid")
+
         other_grid: PuzzleGrid = other
         self.reset()
         for y in range(self.NUM_ROWS):
@@ -89,11 +92,19 @@ class PuzzleGrid:
 
     def populate_from_list(self, hard_coded: List[List[int]]):
         """
-        Populates the puzzle from hardcoded values. Raises GridException if bad values.
+        Populates the puzzle from hardcoded values.
+        :raises GridException: if bad values
         """
+        if len(hard_coded) != self.NUM_ROWS:
+            raise GridException(f"Wrong number of rows: {len(hard_coded)}")
+
         self.reset()
         self.cells = hard_coded
         for y in range(self.NUM_ROWS):
+            hard_coded_row = hard_coded[y]
+            if len(hard_coded_row) != self.NUM_COLUMNS:
+                raise GridException(f"Wrong number of entries ({len(hard_coded_row)}) in row {y}")
+
             for x in range(self.NUM_COLUMNS):
                 cell_val = self.cells[y][x]
 
@@ -128,6 +139,75 @@ class PuzzleGrid:
             if y % self.BOX_SIZE == self.BOX_SIZE - 1:
                 print_separator_row()
 
+    def super_print(self):
+        """
+        Prints a larger representation of the Sudoku puzzle, one that could be printed out on a
+        printer and given to a player.
+        """
+
+        def _make_cell(x: int, y: int, val: int) -> List[str]:
+            """
+            Makes a list of strings representing a single cell. Each string in the list is a row
+            of the printed cell (not the same concept of rows as for the puzzle itself).
+            """
+            lines = []
+            # True if this cell is on the left side of its box. Same idea with "top of"
+            left_of_box = (x % self.BOX_SIZE) == 0
+            top_of_box = (y % self.BOX_SIZE) == 0
+            val_as_str = " " if val == 0 else f"{val}"
+
+            # True if this cell is on very right of whole grid
+            right_of_grid = x == self.NUM_COLUMNS - 1
+            bottom_of_grid = y == self.NUM_ROWS - 1
+
+            # Generate top line of text for cell representation
+            if top_of_box:
+                if left_of_box:
+                    line = "O======="
+                else:
+                    line = "========"
+            else:
+                if left_of_box:
+                    line = "‖-------"
+                else:
+                    line = "+-------"
+            lines.append(line)
+            # Generate next three lines of text
+            if left_of_box:
+                lines.append("‖       ")
+                lines.append(f"‖   {val_as_str}   ")
+                lines.append("‖       ")
+            else:
+                lines.append("|       ")
+                lines.append(f"|   {val_as_str}   ")
+                lines.append("|       ")
+
+            if bottom_of_grid:
+                # An additional line of text is added to bottom of cell if it's at the bottom of grid
+                if left_of_box:
+                    lines.append("O=======")
+                else:
+                    lines.append("========")
+            if right_of_grid:
+                new_lines = []
+                for idx, line in enumerate(lines):
+                    add_char = "O" if top_of_box and idx == 0 else "‖"
+                    new_lines.append(f"{line}{add_char}")
+                lines = new_lines
+            return lines
+
+        for y in range(self.NUM_ROWS):
+            # All the row strings from each cell will be appended to these
+            row_strs = ["", "", "", "", ""]
+            for x in range(self.NUM_COLUMNS):
+                val = self.cells[y][x]
+                lines = _make_cell(x, y, val)
+                for idx, line in enumerate(lines):
+                    row_strs[idx] = row_strs[idx] + line
+            for row in row_strs:
+                if len(row) > 0:
+                    print(row)
+
     def get_value(self, x: int, y: int) -> int:
         """Gets the value at a particular cell, returning 0 if a blank cell"""
         if x < 0 or x >= self.NUM_COLUMNS or y < 0 or y >= self.NUM_ROWS:
@@ -142,6 +222,7 @@ class PuzzleGrid:
         :param x: x coordinate of cell
         :param y: y coordinate of cell
         :param val: 0 to clear cell, 1 - 9 to set a value
+        :raises GridException: if bad value or coordinates given
         """
         if x < 0 or x >= self.NUM_COLUMNS or y < 0 or y >= self.NUM_ROWS:
             raise GridException(f"Bad coordinates ({x},{y})")
@@ -280,6 +361,12 @@ class PuzzleGrid:
         return success
 
     def generate_puzzle(self, solver_callback: Callable[[], bool], required_spaces: int = 45) -> bool:
+        """
+        Generates a complete puzzle, calling both populate_cells() and add_spaces() in one step.
+        :param solver_callback: see add_spaces()
+        :param required_spaces: see add_spaces()
+        :return: True if puzzle generated successfully
+        """
         num_tries = 30
         for _try in range(num_tries):
             self.reset()
@@ -292,10 +379,9 @@ class PuzzleGrid:
             try:
                 self.add_spaces(solver_callback, required_spaces)
             except GridException as ex:
-                print(f"Failed to add spaces successfully on try number {_try}")
+                print(f"Failed to add spaces successfully on try number {_try+1}")
             else:
                 # Success!
-                print("Yay, added spaces")
                 return True
 
         return False
