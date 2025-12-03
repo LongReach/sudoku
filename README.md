@@ -2,6 +2,21 @@
 
 Sudoku puzzle generator and solver
 
+<!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
+
+## Contents
+
+* [Contents](#contents)
+* [Overview](#overview)
+   + [Rules of Sudoku](#rules-of-sudoku)
+   + [Algorithms](#algorithms)
+      - [Solution One: Brute Force](#solution-one-brute-force)
+      - [Puzzle Generation](#puzzle-generation)
+* [Usage](#usage)
+
+<!-- TOC end -->
+
+
 ## Overview
 
 This program generates Sudoku puzzles and then solves them.
@@ -88,7 +103,15 @@ A puzzle that's ready to be solved might look like this:
 
 ## Usage
 
-Run like:
+For help:
 ```commandline
-
+python sudoku.py --help
 ```
+
+```commandline
+python sudoku.py --clues 36 --solve
+```
+
+The example above will create a puzzle with 36 clues (or 45 spaces), then solve it.
+
+The fewer clues a puzzle has, the harder it will be to solve and the longer it will take to generate. If generation seems to be taking too long, try the `--forgiving` flag.
