@@ -2,6 +2,7 @@ import random
 from time import sleep
 from typing import List, Dict, Any, Set, Tuple, Optional, Callable
 
+
 class GridException(Exception):
     """Exception for unresolvable issues encountered during puzzle-creation"""
 
@@ -20,7 +21,6 @@ class SpaceMarker:
 
 
 class PuzzleGrid:
-
     """
     Represents a grid containing a Sudoku puzzle. At the moment of instantiation, the grid will be entirely
     empty. A call to populate_cells() will cause the grid to be filled with values that conform to the Sudoku
@@ -266,7 +266,8 @@ class PuzzleGrid:
         box_definites = self.definite_values_per_box[box_y][box_x]
         if self.cells[y][x] > 0:
             return False, set()
-        return True, set(self.possible_values) - box_definites - self.definite_values_per_row[y] - self.definite_values_per_column[x]
+        return True, set(self.possible_values) - box_definites - self.definite_values_per_row[y] - \
+                     self.definite_values_per_column[x]
 
     @staticmethod
     def get_box_coordinates(cell_x: int, cell_y: int) -> Tuple[int, int]:
@@ -379,7 +380,7 @@ class PuzzleGrid:
             try:
                 self.add_spaces(solver_callback, required_spaces)
             except GridException as ex:
-                print(f"Failed to add spaces successfully on try number {_try+1}")
+                print(f"Failed to add spaces successfully on try number {_try + 1}")
             else:
                 # Success!
                 return True
@@ -449,7 +450,8 @@ class PuzzleGrid:
             if not self._check_space_distribution():
                 self.space_failure_count += 1
                 if self.space_failure_count >= self.MAX_FAILED_SPACE_CONFIGURATIONS:
-                    raise GridException(f"Too many failed space configurations. Number tried: {self.space_failure_count}")
+                    raise GridException(
+                        f"Too many failed space configurations. Number tried: {self.space_failure_count}")
                 return False
 
             self.grid_with_spaces = PuzzleGrid()
@@ -479,7 +481,7 @@ class PuzzleGrid:
                     # Is the grid solvable from here? If not, no point to adding more spaces.
                     solvable = self.solver_callback()
                     if solvable:
-                        success = self._add_spaces_impl(space_markers, index+1, space_count+1)
+                        success = self._add_spaces_impl(space_markers, index + 1, space_count + 1)
                         if success:
                             return True
 
@@ -487,7 +489,7 @@ class PuzzleGrid:
                 self.set_value(marker.x, marker.y, marker.old_val)
             else:
                 # Don't put a space here. Just move on with the recursion.
-                success = self._add_spaces_impl(space_markers, index+1, space_count)
+                success = self._add_spaces_impl(space_markers, index + 1, space_count)
                 if success:
                     return True
 
@@ -513,4 +515,3 @@ class PuzzleGrid:
                 if spaces_in_box > self.max_spaces_per_box or spaces_in_box < self.min_spaces_per_box:
                     return False
         return boxes_with_avg_num_spaces >= 5
-

@@ -39,6 +39,7 @@ bad_puzzle_2 = [
     [0, 7, 0, 6, 0, 0, 0, 0, 1]
 ]
 
+
 class BruteForceSolver:
     """
     A class that solves a Sudoku puzzle by brute force. See README for more info.
@@ -104,12 +105,12 @@ class BruteForceSolver:
             return 0
         if not empty_cell:
             # This is not a blank cell, recursively advance to next cell
-            return self._solve_impl(index+1)
+            return self._solve_impl(index + 1)
         success_count = 0
         for val in options:
             # Let's try this value, then recursively advance to next cell
             self.set_value(x, y, val)
-            recursive_success_count = self._solve_impl(index+1)
+            recursive_success_count = self._solve_impl(index + 1)
             success_count += recursive_success_count
             self.set_value(x, y, 0)
         return success_count
@@ -123,6 +124,7 @@ class BruteForceSolver:
         row = int(index / PuzzleGrid.NUM_COLUMNS)
         column = index % PuzzleGrid.NUM_COLUMNS
         return column, row
+
 
 def solve_sample_puzzle(which_sample: int):
     """Solves one of the sample puzzles found at the top of this file."""
