@@ -30,24 +30,26 @@ This program generates Sudoku puzzles and then solves them.
 
 Sudoku, in its basic form, is played on a 9x9 grid. The grid is subdivided into 9 boxes, each 3x3. The puzzle is presented with some number of cells containing values between 1 and 9, and the rest left blank. The player's goal is to fill in the blank cells.
 
-Rules
+Rules:
 * In each row...
 * In each column...
-* In each row...
+* In each box...
 
-... no value is repeated twice. The digits between 1 and 9 are all present. The fewer filled-in cells the puzzle contains, the harder it typically is. The player uses a process of elimination to try to solve the puzzle, applying the rules above.
+... no value is repeated twice. The digits between 1 and 9 are all present. The fewer filled-in cells (AKA clues) the puzzle contains, the harder it typically is. The player uses a process of elimination to try to solve the puzzle, applying the rules above.
 
 ### Algorithms
 
 #### Solution One: Brute Force
 
-The algorithm traverses the grid from top-left to bottom-right, applying a depth-first search approach. At each blank cell, the algorithm chooses a value, from those that are legal, then proceeds to the next cell. If it's impossible to find a legal value for that particular cell, the algorithm backtracks to the previous cell and tries a different value.
+The algorithm traverses the grid from top-left to bottom-right, applying a depth-first search approach. At each blank cell, the algorithm chooses a value, from those that are legal, then proceeds to the next cell. If it's impossible to find a legal value for that particular cell, the algorithm backtracks to the previous cell and tries a different value, then moves forward again.
 
 #### Puzzle Generation
 
 The generation algorithm attempts to populate each row by taking the set of integers between 1 and 9, shuffling them, and placing them one by one into the row. If a row can't be completed, due to running out of values that legally work, the algorithm clears the row and tries again. If, after some number of tries, it still can't complete the row, it starts over from scratch. In practice, this works pretty well.
 
-Next, the algorithm takes the filled-in grid (example below), and adds blanks to it one by one. For each addition, the algorithm runs the brute force solver to make sure that the puzzle can be solved and that there is only one solution. The blanks are added using a depth-first scheme much like the one described for the brute force solution itself (above).
+Next, the algorithm takes the filled-in grid (example below), and adds blanks/spaces to it one by one. For each addition, the algorithm runs the brute force solver to make sure that the puzzle can be solved and that there is only one solution. 
+
+The blanks are added using a depth-first scheme much like the one described for the brute force solution itself (above). That is, the algorithm starts with a shuffled list of all the coordinates on the grid. It proceeds through the list recursively, trying both a blank and no blank at each position. If a blank fails to work, the algorithm backtracks to the preceding coordinate and tries a different path. This can be rather slow for puzzles with a limited number of clues; since the goal is for the final generated puzzle to have only *ONE* solution, many possibilities must be tried.
 
 ```
 +-------+-------+-------+
@@ -178,6 +180,7 @@ _(Also found in `sample_puzzle.txt`)_
 
 ![](./Improvements.png)
 
+Possible future additions:
 * Create "human-like" solver as an alternative to brute-force solver. This can gauge how hard a given puzzle is.
 * Can ChatGPT or some other AI chatbot solve one of these puzzles?
 * Add unit tests
