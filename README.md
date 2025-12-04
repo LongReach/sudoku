@@ -12,6 +12,7 @@ Sudoku puzzle generator and solver
    + [Algorithms](#algorithms)
       - [Solution One: Brute Force](#solution-one-brute-force)
       - [Puzzle Generation](#puzzle-generation)
+        - [Optimizations](#optimizations)
 * [Usage](#usage)
    + [Basic](#basic)
    + [Handles](#handles)
@@ -105,6 +106,12 @@ A puzzle that's ready to be solved might look like this:
 +-------+-------+-------+
 ```
 `A fairly easy puzzle`
+
+#### Optimizations
+
+The depth-first generation process can be halted whenever it's determined that a puzzle with some number of blanks is unsolvable or has multiple solutions. No point to adding any more blanks after that. Also, quality Sudoku puzzles have the blanks distributed among the boxes in a more-or-less even way. If there are too many blanks in a box, time to stop investigating that particular branch.
+
+I used to know the computer science-y term for this approach, but can't remember right now.
 
 ## Usage
 
